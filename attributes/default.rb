@@ -41,6 +41,7 @@ when 'redhat', 'centos', 'scientific', 'fedora', 'suse', 'amazon', 'oracle'
                                      end
   default['apache']['lib_dir']     = node['kernel']['machine'] =~ /^i[36]86$/ ? '/usr/lib/httpd' : '/usr/lib64/httpd'
   default['apache']['libexecdir']  = "#{node['apache']['lib_dir']}/modules"
+  default['apache']['modscript_dir'] = '/usr/sbin'
   default['apache']['default_site_enabled'] = false
 when 'debian', 'ubuntu'
   default['apache']['package']     = 'apache2'
@@ -58,6 +59,7 @@ when 'debian', 'ubuntu'
   default['apache']['pid_file']    = '/var/run/apache2.pid'
   default['apache']['lib_dir']     = '/usr/lib/apache2'
   default['apache']['libexecdir']  = "#{node['apache']['lib_dir']}/modules"
+  default['apache']['modscript_dir'] = '/usr/sbin'
   default['apache']['default_site_enabled'] = false
 when 'arch'
   default['apache']['package']     = 'apache'
@@ -75,6 +77,7 @@ when 'arch'
   default['apache']['pid_file']    = '/var/run/httpd/httpd.pid'
   default['apache']['lib_dir']     = '/usr/lib/httpd'
   default['apache']['libexecdir']  = "#{node['apache']['lib_dir']}/modules"
+  default['apache']['modscript_dir'] = '/usr/sbin'
   default['apache']['default_site_enabled'] = false
 when 'freebsd'
   default['apache']['package']     = 'apache22'
@@ -93,6 +96,26 @@ when 'freebsd'
   default['apache']['pid_file']    = '/var/run/httpd.pid'
   default['apache']['lib_dir']     = '/usr/local/libexec/apache22'
   default['apache']['libexecdir']  = node['apache']['lib_dir']
+  default['apache']['modscript_dir'] = '/usr/sbin'
+  default['apache']['default_site_enabled'] = false
+when 'mac_os_x', 'mac_os_x_server'
+  default['apache']['package']     = 'httpd'
+  default['apache']['dir']         = '/usr/local/etc/apache2'
+  default['apache']['log_dir']     = '/usr/local/var/apache2/log'
+  default['apache']['error_log']   = 'error_log'
+  default['apache']['access_log']  = 'access_log'
+  default['apache']['root_group']  = 'wheel'
+  default['apache']['user']        = '_www'
+  default['apache']['group']       = '_www'
+  default['apache']['binary']      = '/usr/local/sbin/httpd'
+  default['apache']['docroot_dir'] = '/usr/local/share/apache2/htdocs'
+  default['apache']['cgibin_dir']  = '/usr/local/share/apache2/cgi-bin'
+  default['apache']['icondir']     = '/usr/local/share/apache2/icons'
+  default['apache']['cache_dir']   = '/usr/local/var/apache2/run'
+  default['apache']['pid_file']    = '/usr/local/var/apache2/run/httpd.pid'
+  default['apache']['lib_dir']     = '/usr/local/Cellar/httpd/2.2.25/libexec'
+  default['apache']['libexecdir']  = node['apache']['lib_dir']
+  default['apache']['modscript_dir'] = '/usr/local/sbin'
   default['apache']['default_site_enabled'] = false
 else
   default['apache']['dir']         = '/etc/apache2'
@@ -109,6 +132,7 @@ else
   default['apache']['pid_file']    = 'logs/httpd.pid'
   default['apache']['lib_dir']     = '/usr/lib/apache2'
   default['apache']['libexecdir']  = "#{node['apache']['lib_dir']}/modules"
+  default['apache']['modscript_dir'] = '/usr/sbin'
   default['apache']['default_site_enabled'] = false
 end
 
@@ -173,5 +197,5 @@ default['apache']['default_modules'] = %w[
 ]
 
 %w[log_config logio].each do |log_mod|
-  default['apache']['default_modules'] << log_mod if %w[rhel fedora suse arch freebsd].include?(node['platform_family'])
+  default['apache']['default_modules'] << log_mod if %w[rhel fedora suse arch freebsd mac_os_x].include?(node['platform_family'])
 end

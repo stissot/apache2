@@ -57,6 +57,8 @@ supports 'freebsd'
 supports 'redhat'
 supports 'scientific'
 supports 'ubuntu'
+supports 'mac_os_x'
+suggests 'homebrew'
 
 attribute 'apache',
           :display_name => 'Apache Hash',

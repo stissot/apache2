@@ -38,9 +38,18 @@ service 'apache2' do
     service_name 'httpd'
   when 'freebsd'
     service_name 'apache22'
+  when 'mac_os_x'
+    service_name 'httpd'
+    restart_command '/usr/local/sbin/apachectl restart && sleep 1'
+    reload_command '/usr/local/sbin/apachectl restart && sleep 1'
   end
-  supports [:restart, :reload, :status]
-  action :enable
+  if platform_family?('mac_os_x')
+    supports [:restart, :reload]
+    action :start
+  else
+    supports [:restart, :reload, :status]
+    action :enable
+  end
 end
 
 if platform_family?('rhel', 'fedora', 'arch', 'suse', 'freebsd')
@@ -124,6 +133,43 @@ if platform_family?('freebsd')
   end
 end
 
+if platform_family?('mac_os_x')
+  
+  directory node['apache']['log_dir'] do
+    mode '0755'
+  end
+  
+  cookbook_file '/usr/local/bin/apache2_module_conf_generate.pl' do
+    source 'apache2_module_conf_generate.pl'
+    mode   '0755'
+    owner  'root'
+    group  node['apache']['root_group']
+  end
+  
+  %w[sites-available sites-enabled mods-available mods-enabled].each do |dir|
+    directory "#{node['apache']['dir']}/#{dir}" do
+      mode  '0755'
+      owner 'root'
+      group node['apache']['root_group']
+    end
+  end
+  
+  execute 'generate-module-list' do
+    command "/usr/local/bin/apache2_module_conf_generate.pl #{node['apache']['lib_dir']} #{node['apache']['dir']}/mods-available"
+    action  :nothing
+  end
+  
+  %w[a2ensite a2dissite a2enmod a2dismod].each do |modscript|
+    template "/usr/local/sbin/#{modscript}" do
+      source "#{modscript}.erb"
+      mode  '0700'
+      owner 'root'
+      group node['apache']['root_group']
+    end
+  end
+  
+end
+
 %W[
   #{node['apache']['dir']}/ssl
   #{node['apache']['dir']}/conf.d
@@ -153,6 +199,8 @@ template 'apache2.conf' do
   when 'debian'
     path "#{node['apache']['dir']}/apache2.conf"
   when 'freebsd'
+    path "#{node['apache']['dir']}/httpd.conf"
+  when 'mac_os_x'
     path "#{node['apache']['dir']}/httpd.conf"
   end
   source   'apache2.conf.erb'
